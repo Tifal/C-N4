@@ -5,26 +5,26 @@ LD=gcc
 CFLAGS=-Wall -W -Werror
 LDFLAGS =
 # Le nom de l'exécutable à fabriquer
-EXE=pinky
+EXE=main
 # Les variables HEADERS, CFILES et OBJS vont contenir respectivement
 # la listes des fichiers .h, .c et le nom des fichiers .o à fabriquer
 # On utilise la directive particulière $(wildcard ...) qui permet
 # de construire automatiquement une liste de fichiers
-HEADERS=$(wildcard *. h )
-CFILES=$(wildcard *. c )
+HEADERS=$(wildcard *.h)
+CFILES=$(wildcard *.c)
 # Cette construction de variable veut dire: remplacer la chaine ".c" par
 # ".o" dans la variable CFILES
 # Ceci nous permet de construire la liste des fichiers .o à fabriquer
-OBJS=$(CFILES :. c =. o )
+OBJS=$(CFILES:.c=.o)
 # Même utilisation que précédemment. On précise les règles qui
 # ne fabrique pas de fichier du nom de leur cible
 .PHONY: all clean mrproper
 # La règle par défaut déclenche la fabrication de l'exécutable
 # par dépendance
-all : $(EXE)
+all :$(EXE)
 # Cette règle permet de construire l'exécutable. Elle dépend des fichiers
 # .o et effectue l'édition de lien. Rien de nouveau ici
-$(EXE): $(OBJS)
+$(EXE):$(OBJS)
 	$(LD) $^ $(LDFLAGS) -o $@
 # Cette règle permet de construire automatiquement les règles
 # de compilation pour chacun des fichiers .c
