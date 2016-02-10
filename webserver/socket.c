@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int creer_serveur(int port){
   int socket_serveur;
@@ -48,6 +50,14 @@ void initialiser_signaux ( void ){
     {
       perror ( " signal " );
     }
+  struct sigaction sa ;
+  sa . sa_handler = traitement_signal ;
+  sigemptyset (& sa . sa_mask );
+  sa . sa_flags = SA_RESTART ;
+  if ( sigaction ( SIGCHLD , & sa , NULL ) == -1)
+    {
+      perror ( " sigaction ( SIGCHLD ) " );
+    }
 
 }
 
@@ -63,5 +73,10 @@ int accepte_client(int socket_serveur){
   const char* message="Salut poto comment tu vas ? Moi je payze dans le milieu je suis un mec bien et je suis avec mon poto Fitoussi, un bon gars assez sympa, même si il a une religion assez bizarre mais je crois pas que ce soit sa faute, on choisit pas tout dans la vie. Sinon moi j'suis juste un petit caca qui cherche à s'amuser en faisant le con sur le PC des autres, genre je m'amuse beaucoup très fort, et un jour et bah même que j'en ai fait rager plusieurs en une fois et que j'éatais trop content de moi (RIEN A FOUTRE DES FAUTES DE FRAPPE), et bah même que cette phrase et beaucoup trop longue et qu'il faudrait que je pense à mettre un point. Voilà. Maintenant du coup vu que t'es arrivé sur notre serveur et bah on va bien s'amuser vu qu'on a récupéré ton adresse IP et tout plein d'autres infos sur toi, et même que je vais pouvoir m'amuser à jouer avec ton PC. Sinon on t'as déjà parlé de la otoute puissance du Christ cosmique ? Non ? C'est normal on y connait rien, mais bon. J'AI BESOIN DE CAFE AAAAAAAAAAAH.";
   write(socket_client,message,strlen(message));
   return socket_client;
+}
+void traitement_signal ( int sig )
+{
+  //  printf ("Signal %d recu \n" , sig );
+  wait(&sig);
 }
 
