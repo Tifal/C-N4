@@ -2,6 +2,7 @@
 #include <string.h>
 #include "socket.h"
 #include <unistd.h>
+#include <stdlib.h>
 
 int main ()
 {
@@ -11,16 +12,26 @@ int main ()
   while(1){
     sleep(1);
     if((client=accepte_client(socket_serveur))!=-1){
-      while(strcmp("FIN\n",buffer)!=0){	
+      int pid=fork();
+      int closed=1;
+      if(pid!=0){
+	close(client);
+	closed=0;
+      }
+      while(closed==1 && strcmp("FIN\n",buffer)!=0){	
 	int i = 0;
 	if((i=read(client,buffer,sizeof(buffer)))==-1){
 	  perror("read");
+	  break;
 	}
-
+	
+	if(i==0)break;
+	
 	buffer[i]='\0';
 	
 	if(write(client,buffer,i)==-1){
 	  perror("write");
+	  break;
 	}
       }
       close(client);      

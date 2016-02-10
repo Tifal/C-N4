@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 int creer_serveur(int port){
   int socket_serveur;
@@ -14,11 +15,12 @@ int creer_serveur(int port){
     perror("socket_serveur");
     exit(1);
   }
-  
-    int optval = 1;
+  int optval = 1;
   if ( setsockopt ( socket_serveur , SOL_SOCKET , SO_REUSEADDR , & optval , sizeof ( int )) == -1){
     perror ( " Can not set SO_REUSEADDR option " );
   }
+
+  initialiser_signaux();
   
   struct sockaddr_in saddr;
   saddr.sin_family = AF_INET; /*Socket ipv4*/
@@ -40,9 +42,19 @@ int creer_serveur(int port){
   return socket_serveur;
 }
 
+void initialiser_signaux ( void ){
+
+  if ( signal ( SIGPIPE , SIG_IGN ) == SIG_ERR )
+    {
+      perror ( " signal " );
+    }
+
+}
+
 int accepte_client(int socket_serveur){
   int socket_client;
   socket_client=accept(socket_serveur,NULL,NULL);
+  
   if(socket_client==-1){
     perror("accept");
     exit(4);

@@ -6,4 +6,5 @@
 
 int creer_serveur(int port);
 int accepte_client(int socket_serveur);
+void initialiser_signaux ( void );
 #endif
