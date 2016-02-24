@@ -61,7 +61,7 @@ void initialiser_signaux ( void ){
 
 }
 
-int accepte_client(int socket_serveur){
+FILE* accepte_client(int socket_serveur){
   int socket_client;
   socket_client=accept(socket_serveur,NULL,NULL);
   if(socket_client==-1){
@@ -78,17 +78,11 @@ int accepte_client(int socket_serveur){
     exit(6);
   }
   
-  if(test_get(entete)<0){
-    perror("test_get");
+  if(i=test_get(entete)<0){
+    perror(i);
   }
-
-  //fclose(file);
   
-  /*On peut maintenant dialoguer avec le client*/
-  /* const char* message="Salut poto comment tu vas ? Moi je payze dans le milieu je suis un mec bien et je suis avec mon poto Fitoussi, un bon gars assez sympa, même si il a une religion assez bizarre mais je crois pas que ce soit sa faute, on choisit pas tout dans la vie. Sinon moi j'suis juste un petit caca qui cherche à s'amuser en faisant le con sur le PC des autres, genre je m'amuse beaucoup très fort, et un jour et bah même que j'en ai fait rager plusieurs en une fois et que j'éatais trop content de moi (RIEN A FOUTRE DES FAUTES DE FRAPPE), et bah même que cette phrase et beaucoup trop longue et qu'il faudrait que je pense à mettre un point. Voilà. Maintenant du coup vu que t'es arrivé sur notre serveur et bah on va bien s'amuser vu qu'on a récupéré ton adresse IP et tout plein d'autres infos sur toi, et même que je vais pouvoir m'amuser à jouer avec ton PC. Sinon on t'as déjà parlé de la otoute puissance du Christ cosmique ? Non ? C'est normal on y connait rien, mais bon. J'AI BESOIN DE CAFE AAAAAAAAAAAH.";
-     write(socket_client,message,strlen(message));
-  */
-  return socket_client;
+  return file;
 }
 
 void traitement_signal ( int sig )
@@ -130,7 +124,7 @@ int test_get(char buf[])
        }
        mot_trois[taille]='\0';
        if(strcmp(mot_trois,http1)==0 || strcmp(mot_trois,http2)==0){
-	return 0;
+	 return 0;
        }
        return -4;    
   }
