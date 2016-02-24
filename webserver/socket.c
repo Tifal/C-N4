@@ -64,19 +64,76 @@ void initialiser_signaux ( void ){
 int accepte_client(int socket_serveur){
   int socket_client;
   socket_client=accept(socket_serveur,NULL,NULL);
-  
   if(socket_client==-1){
     perror("accept");
     exit(4);
   }
+  FILE *file = fdopen(socket_client,"w+");
+
+  int i = 0;
+  char entete[1024];
+  
+  if((i=strlen(fgets(entete,sizeof(entete),file)))==-1){
+    perror("fgets");
+    exit(6);
+  }
+  
+  if(test_get(entete)<0){
+    perror("test_get");
+  }
+
+  //fclose(file);
+  
   /*On peut maintenant dialoguer avec le client*/
   /* const char* message="Salut poto comment tu vas ? Moi je payze dans le milieu je suis un mec bien et je suis avec mon poto Fitoussi, un bon gars assez sympa, même si il a une religion assez bizarre mais je crois pas que ce soit sa faute, on choisit pas tout dans la vie. Sinon moi j'suis juste un petit caca qui cherche à s'amuser en faisant le con sur le PC des autres, genre je m'amuse beaucoup très fort, et un jour et bah même que j'en ai fait rager plusieurs en une fois et que j'éatais trop content de moi (RIEN A FOUTRE DES FAUTES DE FRAPPE), et bah même que cette phrase et beaucoup trop longue et qu'il faudrait que je pense à mettre un point. Voilà. Maintenant du coup vu que t'es arrivé sur notre serveur et bah on va bien s'amuser vu qu'on a récupéré ton adresse IP et tout plein d'autres infos sur toi, et même que je vais pouvoir m'amuser à jouer avec ton PC. Sinon on t'as déjà parlé de la otoute puissance du Christ cosmique ? Non ? C'est normal on y connait rien, mais bon. J'AI BESOIN DE CAFE AAAAAAAAAAAH.";
-     write(socket_client,message,strlen(message));*/
+     write(socket_client,message,strlen(message));
+  */
   return socket_client;
 }
+
 void traitement_signal ( int sig )
 {
   //  printf ("Signal %d recu \n" , sig );
   wait(&sig);
 }
 
+int test_get(char buf[])
+{
+  int i=0;
+  int cpt=0;
+  int idx;
+  if(buf[0]!='G' || buf[1]!='E' || buf[2]!='T'){
+    return -1;
+  }
+  while(buf[i]!='\0'){
+    if(buf[i]==' '){
+      cpt++;
+      idx=i;
+    }
+    i++;
+  }
+
+  if(cpt==2){
+      cpt=0;
+       int j;
+       int taille=(i-2)-(idx+1);
+       if(taille!=8){
+	 return -3;
+       }
+       char mot_trois[taille+1];
+       char * http1="HTTP/1.1";
+       char * http2="HTTP/1.0";
+
+       for(j=idx+1;j<idx+taille+1;j++){
+	 mot_trois[cpt]=buf[j];
+	 cpt++;
+       }
+       mot_trois[taille]='\0';
+       if(strcmp(mot_trois,http1)==0 || strcmp(mot_trois,http2)==0){
+	return 0;
+       }
+       return -4;    
+  }
+  return -2;
+  
+}
