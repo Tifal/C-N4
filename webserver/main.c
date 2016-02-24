@@ -58,8 +58,14 @@ while(strcmp("FIN\n",buffer)!=0){
 	  }
 	
 	  if(i==0)break;
-		
+
+	  /*
 	  if(fprintf(file,"%s %s","<PINKY>",buffer)==-1){
+	    perror("fprintf");
+	    break;
+	  }
+	  */
+	  if(printf("%s %s","<PINKY>",buffer)==-1){
 	    perror("fprintf");
 	    break;
 	  }
