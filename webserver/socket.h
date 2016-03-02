@@ -5,7 +5,7 @@
     La fonction retourne -1 en cas d'erreur ou le descripteur de la socket créée. */
 
 int creer_serveur(int port);
-FILE* accepte_client(int socket_serveur);
+int accepte_client(int socket_serveur);
 void initialiser_signaux ( void );
 void traitement_signal ( int sig );
 int test_get(char buf[]);

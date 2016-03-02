@@ -10,44 +10,69 @@ char* server_name = "<PINKY>";
 int main ()
 {
   int socket_serveur=creer_serveur(8080);
-  FILE* client=NULL;
+  int client=0;
   
   while(1){
-    if((client=accepte_client(socket_serveur))!=NULL){
+    if((client=accepte_client(socket_serveur))!=-1){
       int pid=fork();
       if(pid!=0){
-	fclose(client);
+	close(client);
       }
       else{
 	traiter_client(client);
      
-	fclose(client);
+	close(client);
 	exit(0);
       }
     }
   }
   return 0;
 }
-void traiter_client(FILE* file){
-  char buffer[1024];  
+void traiter_client(int client){
   /*On peut maintenant dialoguer avec le client*/
-  const char* message="Salut poto comment tu vas ? Moi je payze dans le milieu je suis un mec bien et je suis avec mon poto Fitoussi, un bon gars assez sympa, même si il a une religion assez bizarre mais je crois pas que ce soit sa faute, on choisit pas tout dans la vie. Sinon moi j'suis juste un petit caca qui cherche à s'amuser en faisant le con sur le PC des autres, genre je m'amuse beaucoup très fort, et un jour et bah même que j'en ai fait rager plusieurs en une fois et que j'éatais trop content de moi (RIEN A FOUTRE DES FAUTES DE FRAPPE), et bah même que cette phrase et beaucoup trop longue et qu'il faudrait que je pense à mettre un point. Voilà. Maintenant du coup vu que t'es arrivé sur notre serveur et bah on va bien s'amuser vu qu'on a récupéré ton adresse IP et tout plein d'autres infos sur toi, et même que je vais pouvoir m'amuser à jouer avec ton PC. Sinon on t'as déjà parlé de la otoute puissance du Christ cosmique ? Non ? C'est normal on y connait rien, mais bon. J'AI BESOIN DE CAFE AAAAAAAAAAAH.";
-  printf("%s\n",message);
-   
+ 
+  printf("Connexion\n");
+  
+  FILE *file = fdopen(client,"w+");
+  int i = 0;
+  char entete[1024];
+  
+  if((i=strlen(fgets(entete,sizeof(entete),file)))==-1){
+    perror("fgets");
+    sendError(file);
+    exit(6);
+  }
+
+  if((i=test_get(entete))<0){
+    //perror("i");
+    sendError(file);
+    exit(8);
+  }
+ 
+  char buffer[1024];  
+
   while(strcmp("FIN\n",buffer)!=0){
-    int i = 0;
-    // if((i=read(client,buffer,sizeof(buffer)))==-1){
-    if((i=strlen(fgets(buffer,sizeof(buffer),file)))==-1){
-      perror("fgets");
-      break;
+     int fini=0;
+  while(fini==0&&fgets(entete,sizeof(entete),file)!=NULL){
+    if(strcmp(entete,"\r\n")==0||strcmp(entete,"\n")==0){
+      fini=1;
     }
-	
-    if(i==0)break;
-    
+  }
+
+  sendHello(file);
+    /*
+    while(fini==0&&fgets(buffer,sizeof(buffer),file)!=NULL){
+      if(strcmp(buffer,"\r\n")==0||strcmp(buffer,"\n")==0){
+	fini=1;
+      }
+    }
+
     if(fprintf(file,"%s %s",server_name,buffer)==-1){
       perror("fprintf");
       break;
     }
+    */
+    
     /*
       if(printf("%s %s","<PINKY>",buffer)==-1){
       perror("printf");
@@ -55,4 +80,14 @@ void traiter_client(FILE* file){
       }
     */
   }
+}
+void sendError(FILE* file){
+  const char* erreur="HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 17\r\n\r\n400 Bad Request\r\n";
+  fprintf(file,erreur);
+}
+
+void sendHello(FILE* file){
+  const char* hello="HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 23\r\n\r\nBienvenue sur Pinky !\r\n";
+  fprintf(file,hello);
+
 }

@@ -61,28 +61,17 @@ void initialiser_signaux ( void ){
 
 }
 
-FILE* accepte_client(int socket_serveur){
+int accepte_client(int socket_serveur){
   int socket_client;
   socket_client=accept(socket_serveur,NULL,NULL);
   if(socket_client==-1){
     perror("accept");
     exit(4);
   }
-  FILE *file = fdopen(socket_client,"w+");
 
-  int i = 0;
-  char entete[1024];
+ 
   
-  if((i=strlen(fgets(entete,sizeof(entete),file)))==-1){
-    perror("fgets");
-    exit(6);
-  }
-  
-  if(i=test_get(entete)<0){
-    perror(i);
-  }
-  
-  return file;
+  return socket_client;
 }
 
 void traitement_signal ( int sig )
@@ -114,6 +103,7 @@ int test_get(char buf[])
        if(taille!=8){
 	 return -3;
        }
+       
        char mot_trois[taille+1];
        char * http1="HTTP/1.1";
        char * http2="HTTP/1.0";
