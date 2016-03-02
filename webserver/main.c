@@ -38,14 +38,14 @@ void traiter_client(int client){
   char entete[1024];
   
   if((i=strlen(fgets(entete,sizeof(entete),file)))==-1){
+    sendError(file,i);
     perror("fgets");
-    sendError(file);
     exit(6);
   }
 
-  if((i=test_get(entete))<0){
+  if((i=test_get(entete))!=0){
     //perror("i");
-    sendError(file);
+    sendError(file,i);
     exit(8);
   }
  
@@ -81,13 +81,28 @@ void traiter_client(int client){
     */
   }
 }
-void sendError(FILE* file){
-  const char* erreur="HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 17\r\n\r\n400 Bad Request\r\n";
+void sendError(FILE* file,int i){
+  printf("%d\n",i);
+  const char* erreur="";
+  switch(i){
+    
+  case 400:
+    erreur="HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 17\r\n\r\n400 Bad Request\r\n";
+    break;
+  case 404:
+    erreur="HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-Length: 20\r\n\r\n404 File Not Found\r\n";
+    break;
+  default :
+    erreur="HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 17\r\n\r\n400 Bad Request\r\n";
+    break;
+  }
+  printf("%s",erreur);
   fprintf(file,erreur);
+  fflush(file);
 }
 
 void sendHello(FILE* file){
   const char* hello="HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 23\r\n\r\nBienvenue sur Pinky !\r\n";
   fprintf(file,hello);
-
+  fflush(file);
 }

@@ -86,38 +86,54 @@ int test_get(char buf[])
   int cpt=0;
   int idx;
   if(buf[0]!='G' || buf[1]!='E' || buf[2]!='T'){
-    return -1;
+    return 400;
   }
   while(buf[i]!='\0'){
     if(buf[i]==' '){
       cpt++;
       idx=i;
     }
+    /*if(buf[i]==' '&&idx1!=-1){
+      cpt++;
+      idx2=i;
+      }*/
     i++;
   }
-
   if(cpt==2){
-      cpt=0;
-       int j;
-       int taille=(i-2)-(idx+1);
-       if(taille!=8){
-	 return -3;
-       }
+    cpt=0;
+    int j;
+    int taille=(i-2)-(idx+1);
+    /* if(idx1!=-1){
+      if(!(idx2-idx1==2&&buf[idx1+1]=='/')){
+	return -404;
+      }
+    }
+    else{
+      return -404;
+    }
+    */
+    if(taille!=8){
+      return 400;
+    }
        
-       char mot_trois[taille+1];
-       char * http1="HTTP/1.1";
-       char * http2="HTTP/1.0";
+    char mot_trois[taille+1];
 
-       for(j=idx+1;j<idx+taille+1;j++){
-	 mot_trois[cpt]=buf[j];
-	 cpt++;
-       }
-       mot_trois[taille]='\0';
-       if(strcmp(mot_trois,http1)==0 || strcmp(mot_trois,http2)==0){
-	 return 0;
-       }
-       return -4;    
+    char * http1="HTTP/1.1";
+    char * http2="HTTP/1.0";
+
+    for(j=idx+1;j<idx+taille+1;j++){
+      mot_trois[cpt]=buf[j];
+      cpt++;
+    }
+    mot_trois[taille]='\0';
+    if(strcmp(mot_trois,http1)==0 || strcmp(mot_trois,http2)==0){
+      if(buf[idx-2]!=' '&&buf[idx-1]!='/'){
+	return 404;
+      }
+      return 0;
+    }
+    return 400;    
   }
-  return -2;
+  return 400;
   
 }
