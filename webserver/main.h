@@ -6,3 +6,4 @@
 void traiter_client(int client);
 void sendError(FILE* file,int i);
 void sendHello(FILE* file);
+int checkErreur(FILE* file, char* entete);
