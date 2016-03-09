@@ -6,7 +6,7 @@
 #include "main.h"
 
 char* server_name = "<PINKY>";
-
+http_request request;
 int main ()
 {
   int socket_serveur=creer_serveur(8080);
@@ -37,24 +37,25 @@ void traiter_client(int client){
  
   char entete[1024];
 
-  erreur=checkErreur(file,entete); 
-     int fini=0;
-  while(fini==0&&fgets(entete,sizeof(entete),file)!=NULL){
-    if(strcmp(entete,"\r\n")==0||strcmp(entete,"\n")==0){
-      fini=1;
-    }
+  erreur=parse_http_request(fgets_or_exit(entete,sizeof(entete),file),&request);
+  skip_headers(file);
+  
+  if(erreur==0){
+  sendError(file,400);
+  exit(400);
   }
-  if(erreur>0){
-  sendError(file,erreur);
-  exit(6);
+  else if(strcmp(request.url,"/")==0){
+    sendHello(file);
+    exit(0);
   }
   else{
-    sendHello(file);
+    sendError(file,404);
+    exit(404);
   }
-  while(1){
-      fini=0;
+  // while(1){
+  /*     fini=0;
       if((erreur=checkErreur(file,entete))==0){
-      while(fini==0&&fgets(entete,sizeof(entete),file)!=NULL){
+      while(fini==0&&fgets_or_exit(entete,sizeof(entete),file)!=NULL){
 	if(strcmp(entete,"\r\n")==0||strcmp(entete,"\n")==0){
 	  fini=1;
 	}
@@ -63,8 +64,8 @@ void traiter_client(int client){
     else{
       sendError(file,erreur);
     }
-    
-  }
+  */
+      //    }
 
 }
 void sendError(FILE* file,int i){
@@ -92,20 +93,71 @@ void sendHello(FILE* file){
   fflush(file);
 }
 
-int checkErreur(FILE* file,char* entete){
-  int i=0;
-  if((i=strlen(fgets(entete,1024,file)))==-1){
-    /*sendError(file,i);
-      perror("fgets");
-      exit(6);*/
-    return i;
+char *fgets_or_exit(char *buffer,int size,FILE *stream)
+{
+  char* message=fgets(buffer, size, stream);
+  if(message==NULL){
+    printf("La connexion s'est interrompue !");
+    exit(2);
   }
+  return message;
+}
 
-  if((i=test_get(entete))!=0){
-    //perror("i");
-    /*sendError(file,i);
-      exit(8);*/
-    return i;
+int parse_http_request(const char* request_line, http_request *request){
+  char* token ="";
+  char* reqdup = strdup(request_line);
+  int ret = 1;
+  int cpt = 0;
+  token = strtok(reqdup, " ");
+  request->method = HTTP_UNSUPPORTED;
+
+  while(token)
+    {
+      ++cpt;
+      if(cpt==1 && strcmp(token,"GET")==0)
+	{
+	  
+	  request->method = HTTP_GET;
+	}
+      if(cpt==2)
+	{
+	  request->url = token;
+	}	      
+      if(cpt > 3)
+	{
+	  ret = 0;
+	}
+      if(cpt == 3)
+	{
+	  if(strcmp(token,"HTTP/1.0\r\n")==0)
+	    {
+	      request->major_version = 1;
+	      request->minor_version = 0;
+	    }
+	  else if (strcmp(token,"HTTP/1.1\r\n")==0)
+	    {
+	      request->major_version = 1;
+	      request->minor_version = 1;
+	    }
+	  else
+	    {
+	      ret = 0;
+	    }
+	}
+      token=strtok(NULL," ");
+    } 
+  if(cpt < 3 )
+    {
+      ret = 0;
+    }
+  return ret;
+}
+void skip_headers(FILE *file){
+  char entete[1024];
+  int fini=0;
+  while(fini==0&&fgets_or_exit(entete,sizeof(entete),file)!=NULL){
+    if(strcmp(entete,"\r\n")==0||strcmp(entete,"\n")==0){
+      fini=1;
+    }
   }
-  return 0;
 }
