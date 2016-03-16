@@ -4,30 +4,43 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "main.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 char* server_name = "<PINKY>";
 char* hello_msg="Bienvenue sur Pinky !\r\n";
 http_request request;
-int main ()
+char* chemin="";
+int main (int argc,char** argv)
 {
   int socket_serveur=creer_serveur(8080);
   int client=0;
-  
-  while(1){
-    if((client=accepte_client(socket_serveur))!=-1){
-      int pid=fork();
-      if(pid!=0){
-	close(client);
-      }
-      else{
-	traiter_client(client);
+  if(argc<2){
+    printf("Impossible de lancer sans fichier root\n");
+  }
+  else if(check_repert_valide(rewrite_url(argv[1]))==-1){
+    printf("Erreur dans l'url\n");
+  }
+  else{
+    chemin=rewrite_url(argv[1]);
+    while(1){
+      if((client=accepte_client(socket_serveur))!=-1){
+	int pid=fork();
+	if(pid!=0){
+	  close(client);
+	}
+	else{
+	  traiter_client(client);
      
-	close(client);
-	exit(0);
+	  close(client);
+	  exit(0);
+	}
       }
     }
   }
-  return 0;
+    return 0;
 }
 void traiter_client(int client){
   /*On peut maintenant dialoguer avec le client*/
@@ -35,7 +48,8 @@ void traiter_client(int client){
   printf("Connexion\n");
   int erreur=-1;
   FILE *file = fdopen(client,"w+");
- 
+   int fd;
+
   char entete[1024];
 
   erreur=parse_http_request(fgets_or_exit(entete,sizeof(entete),file),&request);
@@ -46,6 +60,10 @@ void traiter_client(int client){
   }
   else if(request.method==HTTP_UNSUPPORTED){
     send_response(file,405,"Method Not Allowed","Method Not Allowed\r\n");
+  }
+  else if((fd=check_and_open("/",request.url))!=-1){
+    printf("LOOL\n");
+    send_response(file,200,"OK",hello_msg);
   }
   else if(strcmp(request.url,"/")==0){
     send_response(file,200,"OK",hello_msg);
@@ -134,4 +152,44 @@ void send_response(FILE *client,int code,const char *reason_phrase,const char* m
   send_status(client,code,reason_phrase);
   fprintf(client,"Connection: close\r\nContent-Length: %zu\r\n\r\n%s",strlen(message_body),message_body);
   fflush(client);
+}
+
+int check_repert_valide(const char* chemin){
+  struct stat file_stat;
+  printf("%s\n",chemin);
+  if(stat(chemin,&file_stat)==-1){
+    perror("stat");
+    return -1;
+  }
+  if(S_ISDIR(file_stat.st_mode)==0){
+    printf("Ce n'est pas un répertoire !\n");
+    return -1;
+  }
+  if(((S_IXUSR & file_stat.st_mode)==0)||((S_IXOTH & file_stat.st_mode)==0)){
+    printf("Impossible d'accéder au répertoire !\n");
+    return -1;
+  }
+  return 0;
+}
+char *rewrite_url(char* url){
+  return strtok(url,"?");
+}
+int check_and_open(const char* url,const char* document_root){
+  char * chemin=malloc(strlen(url+strlen(document_root)+1));
+  strcpy(chemin,document_root);
+  strcat(chemin,url);
+  FILE *fichier=NULL;
+  fichier=fopen(chemin,"r");
+  if(fichier==NULL){
+    perror("le fichier n'existe pas");
+    return -1;
+  }
+  struct stat statdata;
+  stat(chemin,&statdata);
+  if(!S_ISREG(statdata.st_mode)){
+    perror("ce n'est pas un fichier régulier");
+    return -1;
+  }
+  int fd=open(chemin,O_RDONLY);
+  return fd;
 }

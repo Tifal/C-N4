@@ -26,3 +26,6 @@ int parse_http_request(const char* request_line, http_request *request);
 void skip_headers(FILE *file);
 void send_status(FILE *client,int code,const char *reason_phrase);
 void send_response(FILE *client,int code,const char *reason_phrase,const char* message_body);
+int check_repert_valide(const char* chemin);
+char* rewrite_url(char* url);
+int check_and_open(const char* url,const char* document_root);
