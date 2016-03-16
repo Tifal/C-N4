@@ -76,6 +76,5 @@ int accepte_client(int socket_serveur){
 
 void traitement_signal ( int sig )
 {
-  //  printf ("Signal %d recu \n" , sig );
   wait(&sig);
 }

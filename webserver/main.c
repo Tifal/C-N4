@@ -6,6 +6,7 @@
 #include "main.h"
 
 char* server_name = "<PINKY>";
+char* hello_msg="Bienvenue sur Pinky !\r\n";
 http_request request;
 int main ()
 {
@@ -41,56 +42,18 @@ void traiter_client(int client){
   skip_headers(file);
   
   if(erreur==0){
-  sendError(file,400);
-  exit(400);
+    send_response(file,400,"Bad Request", "Bad Request\r\n");
+  }
+  else if(request.method==HTTP_UNSUPPORTED){
+    send_response(file,405,"Method Not Allowed","Method Not Allowed\r\n");
   }
   else if(strcmp(request.url,"/")==0){
-    sendHello(file);
-    exit(0);
+    send_response(file,200,"OK",hello_msg);
   }
   else{
-    sendError(file,404);
-    exit(404);
-  }
-  // while(1){
-  /*     fini=0;
-      if((erreur=checkErreur(file,entete))==0){
-      while(fini==0&&fgets_or_exit(entete,sizeof(entete),file)!=NULL){
-	if(strcmp(entete,"\r\n")==0||strcmp(entete,"\n")==0){
-	  fini=1;
-	}
-      }
-    }
-    else{
-      sendError(file,erreur);
-    }
-  */
-      //    }
-
-}
-void sendError(FILE* file,int i){
-  const char* erreur="";
-  switch(i){
-    
-  case 400:
-    erreur="HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 17\r\n\r\n400Bad Request\r\n";
-    break;
-  case 404:
-    erreur="HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-Length: 20\r\n\r\n404 File Not Found\r\n";
-    break;
-  default :
-    erreur="HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 17\r\n\r\n400Bad Request\r\n";
-    break;
+    send_response(file,404,"Not Found","Not Found\r\n");
   }
 
-  fprintf(file,erreur);
-  fflush(file);
-}
-
-void sendHello(FILE* file){
-  const char* hello="HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 23\r\n\r\nBienvenue sur Pinky !\r\n";
-  fprintf(file,hello);
-  fflush(file);
 }
 
 char *fgets_or_exit(char *buffer,int size,FILE *stream)
@@ -160,4 +123,15 @@ void skip_headers(FILE *file){
       fini=1;
     }
   }
+}
+
+void send_status(FILE *client,int code,const char *reason_phrase){
+  fprintf(client,"HTTP/1.1 %d %s\r\n",code,reason_phrase);
+  fflush(client);
+}
+
+void send_response(FILE *client,int code,const char *reason_phrase,const char* message_body){
+  send_status(client,code,reason_phrase);
+  fprintf(client,"Connection: close\r\nContent-Length: %zu\r\n\r\n%s",strlen(message_body),message_body);
+  fflush(client);
 }

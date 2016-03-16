@@ -16,10 +16,13 @@ typedef  struct
   char *url;
 } http_request;
 void traiter_client(int client);
+/*
 void sendError(FILE* file,int i);
 void sendHello(FILE* file);
 int checkErreur(FILE* file, char* entete);
+*/
 char *fgets_or_exit(char *buffer,int size,FILE *stream);
 int parse_http_request(const char* request_line, http_request *request);
 void skip_headers(FILE *file);
-
+void send_status(FILE *client,int code,const char *reason_phrase);
+void send_response(FILE *client,int code,const char *reason_phrase,const char* message_body);
