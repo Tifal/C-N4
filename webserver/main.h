@@ -29,3 +29,7 @@ void send_response(FILE *client,int code,const char *reason_phrase,const char* m
 int check_repert_valide(const char* chemin);
 char* rewrite_url(char* url);
 int check_and_open(const char* url,const char* document_root);
+int get_file_size(int fd);
+char * gettype(char  nom[]);
+int copy(int in, int out);
+void send_response_fd(FILE *client,int code,const char *reason_phrase,int fd,int out);
